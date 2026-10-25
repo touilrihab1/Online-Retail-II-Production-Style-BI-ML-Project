@@ -1,0 +1,8 @@
+pandas
+scikit-learn
+xgboost
+optuna
+matplotlib
+shap
+fastapi "uvicorn[standard]"
+streamlit

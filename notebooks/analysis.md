@@ -49,3 +49,64 @@ Cohort retention analysis shows a substantial drop in customer activity after th
 
 Historical CLV varies substantially across customers, with a small number of customers generating very high cumulative revenue. Customer 18102 has the highest observed CLV at 603,421.65, followed by customer 14646 at 526,751.52. This concentration of revenue highlights the importance of identifying and retaining high-value customers.
 
+# Phase 2 — Feature Engineering & Churn Model
+
+## 1. Feature Engineering and Time-Aware Split
+
+Instead of using a random 80/20 split, I used a time-aware approach based on observation dates. Customer features are calculated using only transactions available up to each observation date, while future purchases are used to define the churn target. This helps prevent data leakage and better reflects a real-world prediction scenario.
+
+I created a reusable `customer_feature_engineering()` function and generated two snapshots:
+
+| Snapshot | Observation Date | Number of Customers |
+|---|---|---:|
+| Snapshot 1 | 2010-03-31 | 2,135 |
+| Snapshot 2 | 2010-08-31 | 3,299 |
+
+Each snapshot contains the following features: `customer_id`, `recency`, `frequency`, `monetary`, `cohort_month`, `days_since_first_purchase`, `average_order_value`, and `distinct_products_bought`.
+
+The churn target is defined using the following 136 days after each observation date. Customers with no valid purchase during this period are labelled `churned = 1`; otherwise, they are labelled `churned = 0`.
+
+Snapshot 1 is used for training, while Snapshot 2 is reserved for testing. The target windows do not overlap, and the training target window ends before the test observation date.
+
+## 2. Baseline Model — Logistic Regression
+
+Logistic Regression achieved **66% accuracy** and a **PR-AUC of 0.589**. For the churned class, precision was 54%, recall was 74%, and the F1-score was 0.62.
+
+The model identified 920 of the 1,242 churned customers. However, it also produced 784 false positives. Overall, the model identified a substantial proportion of churned customers, but its precision indicates room for improvement.
+
+## 3. XGBoost Model
+
+The initial XGBoost model achieved **65% accuracy** and a **PR-AUC of 0.549**. Its churn precision was 55%, while recall was 50%. Compared with Logistic Regression, it performed worse in terms of recall, F1-score, and PR-AUC.
+
+## 4. XGBoost with Bayesian Optimization
+
+I used Bayesian Optimization with Optuna to tune the XGBoost hyperparameters, using cross-validation on the training data and Average Precision as the optimization objective.
+
+After optimization, XGBoost achieved **68% accuracy** and a **PR-AUC of 0.583**. Churn precision increased to 60%, but recall decreased to 47%. Although the optimized model improved accuracy and precision compared with the initial XGBoost model, its PR-AUC remained slightly below the Logistic Regression baseline.
+
+## Why Bayesian Optimization?**
+
+Bayesian Optimization can be more sample-efficient than grid or random search because it uses the results of previous trials to guide the selection of the next hyperparameter configurations. Instead of testing combinations blindly, it builds a probabilistic model of the objective function and focuses on promising configurations. This is particularly useful when model evaluation is computationally expensive. In this project, Bayesian Optimization with Optuna aims to find better XGBoost hyperparameters with a limited number of trials, reducing unnecessary evaluations.
+
+## the Brier score
+The optimized XGBoost model achieved a Brier Score of 0.1985. This metric evaluates the accuracy of predicted probabilities by comparing them with the actual outcomes. A lower score indicates better probabilistic predictions. However, the Brier Score alone does not confirm whether the model is well-calibrated.
+
+## Feature Importance Analysis**
+
+The feature importance plot shows that `monetary` is the most important feature, followed by `frequency` and `distinct_products_bought`. This suggests that customers' total spending, purchase frequency, and product diversity play an important role in the model's churn predictions. In contrast, `cohort_month` and `days_since_first_purchase` have lower importance. However, feature importance does not show whether a feature increases or decreases churn probability.
+
+### SHAP Analysis
+
+The SHAP summary plot shows that `monetary` and `frequency` are the most influential features in the model's predictions, followed by `recency` and `distinct_products_bought`. Higher monetary values and purchase frequency generally push predictions towards non-churn, while higher recency tends to push predictions towards churn. The impact of `average_order_value` varies across customers, whereas `cohort_month` and `days_since_first_purchase` have relatively smaller effects. Overall, SHAP helps explain how different customer behaviors influence churn predictions.
+
+## ======================================================================================================================
+
+### FastAPI Project Structure
+
+The `api/` folder contains four files, each with a specific responsibility:
+
+- **`main.py`**: Defines the API endpoints and handles incoming requests.
+- **`schemas.py`**: Defines Pydantic models for input validation and response formatting.
+- **`database.py`**: Manages the connection to the SQLite database.
+- **`__init__.py`**: Marks the folder as a Python package.
+
