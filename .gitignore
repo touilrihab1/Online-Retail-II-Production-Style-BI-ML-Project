@@ -27,4 +27,4 @@ Thumbs.db
 .idea/
 
 *.db
-notebooks/*.db
+notebooks/*.db.venv_mac/
