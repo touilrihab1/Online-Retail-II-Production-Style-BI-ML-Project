@@ -68,6 +68,11 @@ Online-Retail-II-Production-Style-BI-ML-Project/
 │       ├── 2_RFM_Explorer.py
 │       ├── 3_Churn_Risk.py
 │       └── 4_Cohort_Retention.py
+├── images/
+│   ├── 1_Revenue_Leakage.png
+│   ├── 2_RFM_Explorer.png
+│   ├── 3_Churn_Risk.png
+│   └── 4_Cohort_Retention.png
 ├── data/
 │   └── online_retail.db
 ├── models/
@@ -163,14 +168,33 @@ http://localhost:8501
 
 Keep the FastAPI server running while using the dashboard.
 
-## Dashboard Pages
+## Dashboard Preview
 
-- **Revenue Leakage Overview:** Revenue KPIs and leakage analysis.
-- **RFM Explorer:** Look up customers and inspect their purchasing behaviour.
-- **Churn Risk:** Retrieve churn probability for a selected customer.
-- **Cohort Retention:** Explore customer retention across acquisition cohorts.
+The interactive Streamlit dashboard provides a visual interface for exploring business KPIs, customer segmentation, churn predictions, and retention trends.
 
-The dashboard consumes the FastAPI endpoints rather than querying SQLite directly, separating the presentation layer from the backend.
+### 1. Revenue Leakage Analysis
+
+Monitor revenue performance, identify financial losses from product returns, and assess overall revenue leakage.
+
+![Revenue Leakage Dashboard](images/1_Revenue_Leakage.png)
+
+### 2. RFM & Customer Segmentation
+
+Explore individual customer profiles using Recency, Frequency, and Monetary (RFM) metrics to understand purchasing behaviour and customer value.
+
+![RFM Customer Explorer](images/2_RFM_Explorer.png)
+
+### 3. Customer Churn Risk
+
+Evaluate predicted customer churn probabilities using the trained machine learning model through the FastAPI backend.
+
+![Customer Churn Risk Dashboard](images/3_Churn_Risk.png)
+
+### 4. Cohort Retention Analysis
+
+Visualize customer retention through interactive charts, acquisition cohort selection, and retention trends over time.
+
+![Cohort Retention Dashboard](images/4_Cohort_Retention.png)
 
 ## Future Improvements
 
